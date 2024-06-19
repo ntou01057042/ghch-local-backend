@@ -31,18 +31,20 @@ public class LoginController {
 
     // Callback function after authentication.
     @GetMapping("/callback")
-    public String callback(@RequestParam("code") String code) {
+    public RedirectView callback(@RequestParam("code") String code) {
         Map<?, ?> tokenData = exchangeCode(code);
         if (tokenData.containsKey("access_token")) {
             String token = (String) tokenData.get("access_token");
-            System.out.println("Token: " + token);
+            System.out.println("token: " + token);
             Map<?, ?> userInfo = userInfo(token);
             String handle = (String) userInfo.get("login");
             String name = (String) userInfo.get("name");
-            return "Successfully authorized! Welcome, " + name + " (" + handle + ")";
+            return new RedirectView("http://localhost:3000?token=" + token);
+//            return "Successfully authorized! Welcome, " + name + " (" + handle + ")";
 //            return "Successfully authorized! Got code " + code + " and exchanged it for a user access token ending in " + token.substring(token.length() - 9);
         } else {
-            return "Authorized, but unable to exchange code " + code + " for token.";
+            return new RedirectView("http://localhost:3000");
+//            return "Authorized, but unable to exchange code " + code + " for token.";
         }
     }
 
