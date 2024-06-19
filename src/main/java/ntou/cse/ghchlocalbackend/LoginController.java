@@ -44,9 +44,9 @@ public class LoginController {
             System.out.println("token: " + token);
             Map<?, ?> userInfo = userInfo(token);
             String handle = (String) userInfo.get("login");
-            appUserService.loginAccount(handle);
 //            String name = (String) userInfo.get("name");
-            return new RedirectView("http://localhost:3000?token=" + token);
+            AppUser currentAppUser = appUserService.loginAccount(handle);
+            return new RedirectView("http://localhost:3000?id=" + currentAppUser.getId() + "&username=" + currentAppUser.getUsername() + "&token=" + token);
 //            return "Successfully authorized! Welcome, " + name + " (" + handle + ")";
 //            return "Successfully authorized! Got code " + code + " and exchanged it for a user access token ending in " + token.substring(token.length() - 9);
         } else {

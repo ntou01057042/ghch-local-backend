@@ -1,5 +1,6 @@
 package ntou.cse.ghchlocalbackend;
 
+import lombok.Getter;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -10,11 +11,12 @@ import java.util.List;
 @Service
 public class AppUserService {
 
+    @Getter
     private AppUser appUser;
 
     private final RestTemplate restTemplate = new RestTemplate();
 
-    public void loginAccount(String username) {
+    public AppUser loginAccount(String username) {
         AppUser newAppUserRequest = new AppUser();
         newAppUserRequest.setUsername(username);
         ResponseEntity<Void> createResponse = restTemplate.postForEntity(
@@ -32,5 +34,7 @@ public class AppUserService {
             appUser = response.getBody();
             System.out.println(appUser);
         }
+
+        return appUser;
     }
 }
