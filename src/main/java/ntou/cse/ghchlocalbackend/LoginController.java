@@ -20,7 +20,13 @@ public class LoginController {
     private final String CLIENT_ID = "Iv23liedhHScKQ2pfbdD";
     private final String CLIENT_SECRET = "2d09612e663f8aef8f2a05ad02cf5d3cc7681f4f";
 
+    private final AppUserService appUserService;
+
     private final RestTemplate restTemplate = new RestTemplate();
+
+    public LoginController(AppUserService appUserService) {
+        this.appUserService = appUserService;
+    }
 
     // Redirect to GitHub login page.
     @GetMapping
@@ -38,7 +44,8 @@ public class LoginController {
             System.out.println("token: " + token);
             Map<?, ?> userInfo = userInfo(token);
             String handle = (String) userInfo.get("login");
-            String name = (String) userInfo.get("name");
+            appUserService.loginAccount(handle);
+//            String name = (String) userInfo.get("name");
             return new RedirectView("http://localhost:3000?token=" + token);
 //            return "Successfully authorized! Welcome, " + name + " (" + handle + ")";
 //            return "Successfully authorized! Got code " + code + " and exchanged it for a user access token ending in " + token.substring(token.length() - 9);
