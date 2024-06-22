@@ -17,8 +17,8 @@ import java.util.Map;
 @RequestMapping("/login")
 public class LoginController {
 
-    private final String CLIENT_ID = "Iv23liedhHScKQ2pfbdD";
-    private final String CLIENT_SECRET = "2d09612e663f8aef8f2a05ad02cf5d3cc7681f4f";
+    private final String CLIENT_ID = "Ov23ctAa63hp5klCm3oy";
+    private final String CLIENT_SECRET = "8d86c3affa060b078b83ac3b083f3b1a5f225590";
 
     private final AppUserService appUserService;
 
@@ -32,6 +32,7 @@ public class LoginController {
     @GetMapping
     public RedirectView login() {
         String link = "https://github.com/login/oauth/authorize?client_id=" + CLIENT_ID;
+        link += "&scope=repo, delete_repo";
         return new RedirectView(link);
     }
 
