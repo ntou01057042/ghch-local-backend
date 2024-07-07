@@ -5,4 +5,5 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface GitRepoRepository extends MongoRepository<GitRepo, String> {
+    GitRepo findByRepoOwnerAndRepoName(String owner, String repo);
 }

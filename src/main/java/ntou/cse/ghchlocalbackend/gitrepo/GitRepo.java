@@ -17,15 +17,15 @@ public class GitRepo {
     @Id
     private String id;
 
-    private String username;
-
     private String repoOwner;
 
     private String repoName;
 
-    public GitRepo(String username, String repoOwner, String repoName) {
-        this.username = username;
+    private String directory;
+
+    public GitRepo(String repoOwner, String repoName, String directory) {
         this.repoOwner = repoOwner;
         this.repoName = repoName;
+        this.directory = directory;
     }
 }
