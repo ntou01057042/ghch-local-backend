@@ -1,6 +1,5 @@
 package ntou.cse.ghchlocalbackend.gitrepo;
 
-import ntou.cse.ghchlocalbackend.AppUserService;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.lib.TextProgressMonitor;
@@ -11,17 +10,15 @@ import org.springframework.web.util.UriComponentsBuilder;
 import java.io.File;
 import java.net.URI;
 
+@CrossOrigin(origins = "*")
 @RestController
-@RequestMapping("/git-repos")
+@RequestMapping("/git-repo")
 public class GitRepoController {
 
     private final GitRepoRepository gitRepoRepository;
 
-    private final AppUserService appUserService;
-
-    public GitRepoController(GitRepoRepository gitRepoRepository, AppUserService appUserService) {
+    public GitRepoController(GitRepoRepository gitRepoRepository) {
         this.gitRepoRepository = gitRepoRepository;
-        this.appUserService = appUserService;
     }
 
     @PostMapping("/clone")
@@ -30,6 +27,7 @@ public class GitRepoController {
         String desktopPath = System.getProperty("user.home") + File.separator + "Desktop" + File.separator + "GHCH";   // temporary
         String url = "https://github.com/" + repoOwner + "/" + repoName + ".git";
         File directory = new File(desktopPath, repoName);
+        String resultDirectory;
 
         // then clone
         System.out.println("Cloning from " + url + " to " + directory);
@@ -40,13 +38,24 @@ public class GitRepoController {
                 .call()) {
             // Note: the call() returns an opened repository already which needs to be closed to avoid file handle leaks!
             System.out.println("Having repository: " + result.getRepository().getDirectory());
+            resultDirectory = result.getRepository().getDirectory().toString();
         }
 
-        GitRepo savedGitRepo = gitRepoRepository.save(new GitRepo(appUserService.getAppUser().getUsername(), repoOwner, repoName));
+//        GitRepo savedGitRepo = gitRepoRepository.save(new GitRepo(appUserService.getAppUser().getUsername(), repoOwner, repoName, resultDirectory));
+        GitRepo savedGitRepo = gitRepoRepository.save(new GitRepo(repoOwner, repoName, resultDirectory));
         URI locationOfNewGitRepo = ucb
                 .path("/git-repos/{id}")
                 .buildAndExpand(savedGitRepo.getId())
                 .toUri();
         return ResponseEntity.created(locationOfNewGitRepo).build();
     }
+
+//    @GetMapping
+//    public ResponseEntity<GitRepo> findByRepoOwnerAndRepoName(@RequestParam String owner, @RequestParam String repo) {
+//        GitRepo result = gitRepoRepository.findByRepoOwnerAndRepoName(owner, repo);
+//        if (result == null) {
+//            return ResponseEntity.notFound().build();
+//        }
+//        return ResponseEntity.ok(result);
+//    }
 }
