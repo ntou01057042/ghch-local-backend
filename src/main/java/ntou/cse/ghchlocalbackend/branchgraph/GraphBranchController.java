@@ -10,6 +10,7 @@ import org.eclipse.jgit.revwalk.RevCommit;
 import org.eclipse.jgit.revwalk.RevWalk;
 import org.eclipse.jgit.storage.file.FileRepositoryBuilder;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.client.RestTemplate;
 
 import java.io.File;
 import java.io.IOException;
@@ -21,13 +22,22 @@ import java.util.*;
 public class GraphBranchController {
 
     private final GitRepoRepository gitRepoRepository;
+    private final GraphBranchRepository graphBranchRepository;
 
-    public GraphBranchController(GitRepoRepository gitRepoRepository) {
+    private final RestTemplate restTemplate = new RestTemplate();
+
+    public GraphBranchController(GitRepoRepository gitRepoRepository, GraphBranchRepository graphBranchRepository) {
         this.gitRepoRepository = gitRepoRepository;
+        this.graphBranchRepository = graphBranchRepository;
     }
 
     @GetMapping
     public List<GraphBranch> getGraphBranches(@RequestParam String owner, @RequestParam String repo) throws IOException, GitAPIException {
+        // delete old records
+        if (graphBranchRepository.existsByOwnerAndRepo(owner, repo)) {
+            graphBranchRepository.deleteByOwnerAndRepo(owner, repo);
+        }
+
         List<GraphBranch> res = new ArrayList<>();
         FileRepositoryBuilder builder = new FileRepositoryBuilder();
 //        File repoDir = new File(gitRepoRepository.findByRepoOwnerAndRepoName(owner, repo).getDirectory());
@@ -132,6 +142,8 @@ public class GraphBranchController {
                 RevCommit firstCommit = findFirstCommit(commits, masterCommits);
                 System.out.println("First commit: " + firstCommit);
                 GraphBranch graphBranch = new GraphBranch(
+                        owner,
+                        repo,
                         ref.substring("refs/remotes/origin/".length()),
                         new Date(lastCommit.getCommitTime() * 1000L),
                         new Date(firstCommit.getCommitTime() * 1000L),
@@ -139,6 +151,7 @@ public class GraphBranchController {
                 );
                 System.out.println(graphBranch);
                 res.add(graphBranch);
+                GraphBranch savedGraphBranch = graphBranchRepository.save(graphBranch);
             }
         }
         return res;
@@ -187,5 +200,27 @@ public class GraphBranchController {
             }
         }
         return refs;
+    }
+
+    @PostMapping
+    public void uploadGraphBranch(@RequestParam String owner, @RequestParam String repo) {
+        restTemplate.delete("http://localhost:8081/cloud-graph-branch/" + owner + "/" + repo);
+
+        List<GraphBranch> graphBranches = graphBranchRepository.findAllByOwnerAndRepo(owner, repo);
+        for (GraphBranch graphBranch : graphBranches) {
+            CloudGraphBranch newCloudGraphBranchRequest = new CloudGraphBranch(
+                    graphBranch.getOwner(),
+                    graphBranch.getRepo(),
+                    graphBranch.getName(),
+                    graphBranch.getEndTime(),
+                    graphBranch.getStartTime(),
+                    graphBranch.getCommitter()
+            );
+            restTemplate.postForEntity(
+                    "http://localhost:8081/cloud-graph-branch",
+                    newCloudGraphBranchRequest,
+                    Void.class
+            );
+        }
     }
 }

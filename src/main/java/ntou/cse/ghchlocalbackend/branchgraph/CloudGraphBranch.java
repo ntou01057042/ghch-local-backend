@@ -1,16 +1,18 @@
 package ntou.cse.ghchlocalbackend.branchgraph;
 
 import lombok.*;
-import org.springframework.data.mongodb.core.mapping.Document;
+import org.springframework.data.annotation.Id;
 
 import java.util.Date;
 
-@Document("graph-branches")
 @NoArgsConstructor
 @Getter
 @Setter
 @ToString
-public class GraphBranch {
+public class CloudGraphBranch {
+
+    @Id
+    private String id;
 
     private String owner;
 
@@ -24,7 +26,7 @@ public class GraphBranch {
 
     private String committer;
 
-    public GraphBranch(String owner, String repo, String name, Date endTime, Date startTime, String committer) {
+    public CloudGraphBranch(String owner, String repo, String name, Date endTime, Date startTime, String committer) {
         this.owner = owner;
         this.repo = repo;
         this.name = name;
