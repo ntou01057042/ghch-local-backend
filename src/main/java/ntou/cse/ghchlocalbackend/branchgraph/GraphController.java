@@ -1,8 +1,6 @@
 package ntou.cse.ghchlocalbackend.branchgraph;
 
 import ntou.cse.ghchlocalbackend.gitrepo.GitRepoRepository;
-import ntou.cse.ghchlocalbackend.graphcommit.GraphCommit;
-import ntou.cse.ghchlocalbackend.graphcommit.GraphCommitRepository;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.ListBranchCommand;
 import org.eclipse.jgit.api.errors.GitAPIException;
@@ -20,8 +18,8 @@ import java.util.*;
 
 @CrossOrigin(origins = "*")
 @RestController
-@RequestMapping("/graph-branch")
-public class GraphBranchController {
+@RequestMapping("/graph")
+public class GraphController {
 
     private final GitRepoRepository gitRepoRepository;
     private final GraphBranchRepository graphBranchRepository;
@@ -29,14 +27,14 @@ public class GraphBranchController {
 
     private final RestTemplate restTemplate = new RestTemplate();
 
-    public GraphBranchController(GitRepoRepository gitRepoRepository, GraphBranchRepository graphBranchRepository, GraphCommitRepository graphCommitRepository) {
+    public GraphController(GitRepoRepository gitRepoRepository, GraphBranchRepository graphBranchRepository, GraphCommitRepository graphCommitRepository) {
         this.gitRepoRepository = gitRepoRepository;
         this.graphBranchRepository = graphBranchRepository;
         this.graphCommitRepository = graphCommitRepository;
     }
 
     @GetMapping
-    public List<GraphBranch> getGraphBranches(@RequestParam String owner, @RequestParam String repo) throws IOException, GitAPIException {
+    public List<GraphBranch> getGraphBranchesAndGraphCommits(@RequestParam String owner, @RequestParam String repo) throws IOException, GitAPIException {
         // delete old records
         if (graphBranchRepository.existsByOwnerAndRepo(owner, repo)) {
             graphBranchRepository.deleteByOwnerAndRepo(owner, repo);
@@ -226,8 +224,8 @@ public class GraphBranchController {
         return refs;
     }
 
-    @PostMapping
-    public void uploadGraphBranch(@RequestParam String owner, @RequestParam String repo) {
+    @PostMapping("/upload")
+    public void uploadGraphBranchesAndGraphCommits(@RequestParam String owner, @RequestParam String repo) {
         restTemplate.delete("http://localhost:8081/cloud-graph-branch/" + owner + "/" + repo);
 
         List<GraphBranch> graphBranches = graphBranchRepository.findAllByOwnerAndRepo(owner, repo);
@@ -243,6 +241,24 @@ public class GraphBranchController {
             restTemplate.postForEntity(
                     "http://localhost:8081/cloud-graph-branch",
                     newCloudGraphBranchRequest,
+                    Void.class
+            );
+        }
+
+        restTemplate.delete("http://localhost:8081/cloud-graph-commit/" + owner + "/" + repo);
+
+        List<GraphCommit> graphCommits = graphCommitRepository.findAllByOwnerAndRepo(owner, repo);
+        for (GraphCommit graphCommit : graphCommits) {
+            CloudGraphCommit newCloudGraphCommitRequest = new CloudGraphCommit(
+                    graphCommit.getOwner(),
+                    graphCommit.getRepo(),
+                    graphCommit.getBranchName(),
+                    graphCommit.getMessage(),
+                    graphCommit.getCommitter()
+            );
+            restTemplate.postForEntity(
+                    "http://localhost:8081/cloud-graph-commit",
+                    newCloudGraphCommitRequest,
                     Void.class
             );
         }

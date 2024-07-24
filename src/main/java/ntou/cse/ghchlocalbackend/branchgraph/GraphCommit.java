@@ -1,4 +1,4 @@
-package ntou.cse.ghchlocalbackend.graphcommit;
+package ntou.cse.ghchlocalbackend.branchgraph;
 
 import lombok.Getter;
 import lombok.NoArgsConstructor;
