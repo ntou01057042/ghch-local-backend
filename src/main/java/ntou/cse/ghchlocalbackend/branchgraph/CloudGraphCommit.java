@@ -6,6 +6,8 @@ import lombok.Setter;
 import lombok.ToString;
 import org.springframework.data.annotation.Id;
 
+import java.util.Date;
+
 @NoArgsConstructor
 @Getter
 @Setter
@@ -25,11 +27,14 @@ public class CloudGraphCommit {
 
     private String committer;
 
-    public CloudGraphCommit(String owner, String repo, String branchName, String message, String committer) {
+    private Date commitTime;
+
+    public CloudGraphCommit(String owner, String repo, String branchName, String message, String committer, Date commitTime) {
         this.owner = owner;
         this.repo = repo;
         this.branchName = branchName;
         this.message = message;
         this.committer = committer;
+        this.commitTime = commitTime;
     }
 }

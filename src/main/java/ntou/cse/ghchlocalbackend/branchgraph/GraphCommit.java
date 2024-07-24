@@ -7,6 +7,8 @@ import lombok.ToString;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
+import java.util.Date;
+
 @Document("graph-commits")
 @NoArgsConstructor
 @Getter
@@ -27,11 +29,14 @@ public class GraphCommit {
 
     private String committer;
 
-    public GraphCommit(String owner, String repo, String branchName, String message, String committer) {
+    private Date commitTime;
+
+    public GraphCommit(String owner, String repo, String branchName, String message, String committer, Date commitTime) {
         this.owner = owner;
         this.repo = repo;
         this.branchName = branchName;
         this.message = message;
         this.committer = committer;
+        this.commitTime = commitTime;
     }
 }

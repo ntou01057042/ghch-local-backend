@@ -169,7 +169,8 @@ public class GraphController {
                             repo,
                             ref.substring("refs/remotes/origin/".length()),
                             commits.get(i).getShortMessage(),
-                            commits.get(i).getCommitterIdent().getName()
+                            commits.get(i).getCommitterIdent().getName(),
+                            new Date(commits.get(i).getCommitTime() * 1000L)
                     ));
                 }
                 System.out.println(graphCommits);
@@ -254,7 +255,8 @@ public class GraphController {
                     graphCommit.getRepo(),
                     graphCommit.getBranchName(),
                     graphCommit.getMessage(),
-                    graphCommit.getCommitter()
+                    graphCommit.getCommitter(),
+                    graphCommit.getCommitTime()
             );
             restTemplate.postForEntity(
                     "http://localhost:8081/cloud-graph-commit",
