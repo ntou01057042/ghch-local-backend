@@ -1,6 +1,8 @@
 package ntou.cse.ghchlocalbackend.branchgraph;
 
 import ntou.cse.ghchlocalbackend.gitrepo.GitRepoRepository;
+import ntou.cse.ghchlocalbackend.graphcommit.GraphCommit;
+import ntou.cse.ghchlocalbackend.graphcommit.GraphCommitRepository;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.ListBranchCommand;
 import org.eclipse.jgit.api.errors.GitAPIException;
@@ -23,12 +25,14 @@ public class GraphBranchController {
 
     private final GitRepoRepository gitRepoRepository;
     private final GraphBranchRepository graphBranchRepository;
+    private final GraphCommitRepository graphCommitRepository;
 
     private final RestTemplate restTemplate = new RestTemplate();
 
-    public GraphBranchController(GitRepoRepository gitRepoRepository, GraphBranchRepository graphBranchRepository) {
+    public GraphBranchController(GitRepoRepository gitRepoRepository, GraphBranchRepository graphBranchRepository, GraphCommitRepository graphCommitRepository) {
         this.gitRepoRepository = gitRepoRepository;
         this.graphBranchRepository = graphBranchRepository;
+        this.graphCommitRepository = graphCommitRepository;
     }
 
     @GetMapping
@@ -36,6 +40,9 @@ public class GraphBranchController {
         // delete old records
         if (graphBranchRepository.existsByOwnerAndRepo(owner, repo)) {
             graphBranchRepository.deleteByOwnerAndRepo(owner, repo);
+        }
+        if (graphCommitRepository.existsByOwnerAndRepo(owner, repo)) {
+            graphCommitRepository.deleteByOwnerAndRepo(owner, repo);
         }
 
         List<GraphBranch> res = new ArrayList<>();
@@ -154,7 +161,21 @@ public class GraphBranchController {
                 );
                 System.out.println(graphBranch);
                 res.add(graphBranch);
-                GraphBranch savedGraphBranch = graphBranchRepository.save(graphBranch);
+                graphBranchRepository.save(graphBranch);
+
+                // Store GraphCommits in this branch
+                List<GraphCommit> graphCommits = new ArrayList<>();
+                for (int i = commits.indexOf(firstCommit); i >= 0; i--) {
+                    graphCommits.add(new GraphCommit(
+                            owner,
+                            repo,
+                            ref.substring("refs/remotes/origin/".length()),
+                            commits.get(i).getShortMessage(),
+                            commits.get(i).getCommitterIdent().getName()
+                    ));
+                }
+                System.out.println(graphCommits);
+                graphCommitRepository.saveAll(graphCommits);
             }
         }
         return res;
