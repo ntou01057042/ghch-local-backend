@@ -50,6 +50,9 @@ public class GraphBranchController {
 
             // the Ref holds an ObjectId for any type of object (tree, commit, blob, tree)
             Ref masterhead = repository.exactRef("refs/remotes/origin/master");
+            if (masterhead == null) {
+                masterhead = repository.exactRef("refs/remotes/origin/main");
+            }
             System.out.println("\nRef: " + masterhead);
 
             Set<RevCommit> masterSeen = new HashSet<>();
@@ -91,7 +94,7 @@ public class GraphBranchController {
             }
 
             for (String ref : listBranches(owner, repo)) {
-                if (ref.startsWith("refs/heads/") || ref.startsWith("refs/remotes/origin/master")) {
+                if (ref.startsWith("refs/heads/") || ref.startsWith("refs/remotes/origin/master") || ref.startsWith("refs/remotes/origin/main")) {
                     continue;
                 }
 //                System.out.println("ref: " + ref);
