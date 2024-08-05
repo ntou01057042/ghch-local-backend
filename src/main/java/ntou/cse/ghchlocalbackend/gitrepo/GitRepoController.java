@@ -24,7 +24,7 @@ public class GitRepoController {
     @PostMapping("/clone")
     public ResponseEntity<Void> cloneGitHubRepo(@RequestParam String repoOwner, @RequestParam String repoName, UriComponentsBuilder ucb) throws GitAPIException {
         // prepare a new folder for the cloned repository
-        String desktopPath = System.getProperty("user.home") + File.separator + "Desktop" + File.separator + "GHCH";   // temporary
+        String desktopPath = System.getProperty("user.home") + File.separator + "GHCH";   // temporary
         String url = "https://github.com/" + repoOwner + "/" + repoName + ".git";
         File directory = new File(desktopPath, repoName);
         String resultDirectory;
