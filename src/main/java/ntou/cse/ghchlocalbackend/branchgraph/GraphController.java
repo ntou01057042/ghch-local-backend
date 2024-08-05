@@ -18,24 +18,29 @@ import java.util.*;
 
 @CrossOrigin(origins = "*")
 @RestController
-@RequestMapping("/graph-branch")
-public class GraphBranchController {
+@RequestMapping("/graph")
+public class GraphController {
 
     private final GitRepoRepository gitRepoRepository;
     private final GraphBranchRepository graphBranchRepository;
+    private final GraphCommitRepository graphCommitRepository;
 
     private final RestTemplate restTemplate = new RestTemplate();
 
-    public GraphBranchController(GitRepoRepository gitRepoRepository, GraphBranchRepository graphBranchRepository) {
+    public GraphController(GitRepoRepository gitRepoRepository, GraphBranchRepository graphBranchRepository, GraphCommitRepository graphCommitRepository) {
         this.gitRepoRepository = gitRepoRepository;
         this.graphBranchRepository = graphBranchRepository;
+        this.graphCommitRepository = graphCommitRepository;
     }
 
     @GetMapping
-    public List<GraphBranch> getGraphBranches(@RequestParam String owner, @RequestParam String repo) throws IOException, GitAPIException {
+    public List<GraphBranch> getGraphBranchesAndGraphCommits(@RequestParam String owner, @RequestParam String repo) throws IOException, GitAPIException {
         // delete old records
         if (graphBranchRepository.existsByOwnerAndRepo(owner, repo)) {
             graphBranchRepository.deleteByOwnerAndRepo(owner, repo);
+        }
+        if (graphCommitRepository.existsByOwnerAndRepo(owner, repo)) {
+            graphCommitRepository.deleteByOwnerAndRepo(owner, repo);
         }
 
         List<GraphBranch> res = new ArrayList<>();
@@ -154,7 +159,22 @@ public class GraphBranchController {
                 );
                 System.out.println(graphBranch);
                 res.add(graphBranch);
-                GraphBranch savedGraphBranch = graphBranchRepository.save(graphBranch);
+                graphBranchRepository.save(graphBranch);
+
+                // Store GraphCommits in this branch
+                List<GraphCommit> graphCommits = new ArrayList<>();
+                for (int i = commits.indexOf(firstCommit); i >= 0; i--) {
+                    graphCommits.add(new GraphCommit(
+                            owner,
+                            repo,
+                            ref.substring("refs/remotes/origin/".length()),
+                            commits.get(i).getShortMessage(),
+                            commits.get(i).getCommitterIdent().getName(),
+                            new Date(commits.get(i).getCommitTime() * 1000L)
+                    ));
+                }
+                System.out.println(graphCommits);
+                graphCommitRepository.saveAll(graphCommits);
             }
         }
         return res;
@@ -205,8 +225,8 @@ public class GraphBranchController {
         return refs;
     }
 
-    @PostMapping
-    public void uploadGraphBranch(@RequestParam String owner, @RequestParam String repo) {
+    @PostMapping("/upload")
+    public void uploadGraphBranchesAndGraphCommits(@RequestParam String owner, @RequestParam String repo) {
         restTemplate.delete("http://localhost:8081/cloud-graph-branch/" + owner + "/" + repo);
 
         List<GraphBranch> graphBranches = graphBranchRepository.findAllByOwnerAndRepo(owner, repo);
@@ -222,6 +242,25 @@ public class GraphBranchController {
             restTemplate.postForEntity(
                     "http://localhost:8081/cloud-graph-branch",
                     newCloudGraphBranchRequest,
+                    Void.class
+            );
+        }
+
+        restTemplate.delete("http://localhost:8081/cloud-graph-commit/" + owner + "/" + repo);
+
+        List<GraphCommit> graphCommits = graphCommitRepository.findAllByOwnerAndRepo(owner, repo);
+        for (GraphCommit graphCommit : graphCommits) {
+            CloudGraphCommit newCloudGraphCommitRequest = new CloudGraphCommit(
+                    graphCommit.getOwner(),
+                    graphCommit.getRepo(),
+                    graphCommit.getBranchName(),
+                    graphCommit.getMessage(),
+                    graphCommit.getCommitter(),
+                    graphCommit.getCommitTime()
+            );
+            restTemplate.postForEntity(
+                    "http://localhost:8081/cloud-graph-commit",
+                    newCloudGraphCommitRequest,
                     Void.class
             );
         }
