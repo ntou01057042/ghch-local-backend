@@ -9,6 +9,7 @@ import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.revwalk.RevCommit;
 import org.eclipse.jgit.revwalk.RevWalk;
 import org.eclipse.jgit.storage.file.FileRepositoryBuilder;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
 
@@ -223,6 +224,15 @@ public class GraphController {
             }
         }
         return refs;
+    }
+
+    @GetMapping("/commits")
+    public ResponseEntity<List<GraphCommit>> getGraphCommits(@RequestParam String owner, @RequestParam String repo) {
+        List<GraphCommit> result = graphCommitRepository.findAllByOwnerAndRepo(owner, repo);
+        if (result.isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
+        return ResponseEntity.ok(result);
     }
 
     @PostMapping("/upload")
