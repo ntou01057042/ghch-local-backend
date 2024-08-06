@@ -1,8 +1,6 @@
 package ntou.cse.ghchlocalbackend.flowcommit;
 
 import ntou.cse.ghchlocalbackend.gitrepo.GitRepoRepository;
-import org.eclipse.jgit.api.Git;
-import org.eclipse.jgit.api.ListBranchCommand;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.lib.Ref;
 import org.eclipse.jgit.lib.Repository;
@@ -15,6 +13,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.*;
 
+@CrossOrigin(origins = "*")
 @RestController
 @RequestMapping("/flow-commit")
 public class FlowCommitController {
