@@ -50,12 +50,19 @@ public class GitRepoController {
         return ResponseEntity.created(locationOfNewGitRepo).build();
     }
 
-//    @GetMapping
-//    public ResponseEntity<GitRepo> findByRepoOwnerAndRepoName(@RequestParam String owner, @RequestParam String repo) {
-//        GitRepo result = gitRepoRepository.findByRepoOwnerAndRepoName(owner, repo);
-//        if (result == null) {
-//            return ResponseEntity.notFound().build();
-//        }
-//        return ResponseEntity.ok(result);
-//    }
+    @GetMapping("/check")
+    public ResponseEntity<Boolean> checkIfClonedRepoExists(@RequestParam String repoOwner, @RequestParam String repoName) {
+        GitRepo gitRepo = gitRepoRepository.findByRepoOwnerAndRepoName(repoOwner, repoName);
+        if (gitRepo != null) {
+            System.out.println(gitRepo.getDirectory());
+            File file = new File(gitRepo.getDirectory());
+            if (file.exists()) {
+                System.out.println("The Git repository exists.");
+                return ResponseEntity.ok(true);
+            } else {
+                System.out.println("The Git repository does not exist.");
+            }
+        }
+        return ResponseEntity.ok(false);
+    }
 }
