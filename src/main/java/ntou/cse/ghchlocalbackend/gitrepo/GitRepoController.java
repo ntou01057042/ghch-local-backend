@@ -2,6 +2,7 @@ package ntou.cse.ghchlocalbackend.gitrepo;
 
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;
+import org.eclipse.jgit.api.errors.JGitInternalException;
 import org.eclipse.jgit.lib.TextProgressMonitor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -39,9 +40,11 @@ public class GitRepoController {
             // Note: the call() returns an opened repository already which needs to be closed to avoid file handle leaks!
             System.out.println("Having repository: " + result.getRepository().getDirectory());
             resultDirectory = result.getRepository().getDirectory().toString();
+        } catch (JGitInternalException e) {
+            System.out.println("Git repository already exists.");
+            return ResponseEntity.badRequest().build();
         }
 
-//        GitRepo savedGitRepo = gitRepoRepository.save(new GitRepo(appUserService.getAppUser().getUsername(), repoOwner, repoName, resultDirectory));
         GitRepo savedGitRepo = gitRepoRepository.save(new GitRepo(repoOwner, repoName, resultDirectory));
         URI locationOfNewGitRepo = ucb
                 .path("/git-repos/{id}")
