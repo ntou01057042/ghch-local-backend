@@ -7,6 +7,8 @@ import lombok.ToString;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
+import java.util.Date;
+
 @Document("git-repos")
 @NoArgsConstructor
 @Getter
@@ -23,9 +25,12 @@ public class GitRepo {
 
     private String directory;
 
-    public GitRepo(String repoOwner, String repoName, String directory) {
+    private Date clonedDate;
+
+    public GitRepo(String repoOwner, String repoName, String directory, Date clonedDate) {
         this.repoOwner = repoOwner;
         this.repoName = repoName;
         this.directory = directory;
+        this.clonedDate = clonedDate;
     }
 }

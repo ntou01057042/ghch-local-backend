@@ -10,6 +10,8 @@ import org.springframework.web.util.UriComponentsBuilder;
 
 import java.io.File;
 import java.net.URI;
+import java.util.Date;
+import java.util.List;
 
 @CrossOrigin(origins = "*")
 @RestController
@@ -45,7 +47,7 @@ public class GitRepoController {
             return ResponseEntity.badRequest().build();
         }
 
-        GitRepo savedGitRepo = gitRepoRepository.save(new GitRepo(repoOwner, repoName, resultDirectory));
+        GitRepo savedGitRepo = gitRepoRepository.save(new GitRepo(repoOwner, repoName, resultDirectory, new Date()));
         URI locationOfNewGitRepo = ucb
                 .path("/git-repos/{id}")
                 .buildAndExpand(savedGitRepo.getId())
@@ -55,17 +57,20 @@ public class GitRepoController {
 
     @GetMapping("/check")
     public ResponseEntity<Boolean> checkIfClonedRepoExists(@RequestParam String repoOwner, @RequestParam String repoName) {
-        GitRepo gitRepo = gitRepoRepository.findByRepoOwnerAndRepoName(repoOwner, repoName);
-        if (gitRepo != null) {
-            System.out.println(gitRepo.getDirectory());
-            File file = new File(gitRepo.getDirectory());
+        List<GitRepo> gitRepos = gitRepoRepository.findAllByRepoOwnerAndRepoName(repoOwner, repoName);
+        if (!gitRepos.isEmpty()) {
+            for (GitRepo gitRepo : gitRepos) {
+//                System.out.println(gitRepo);
+                gitRepoRepository.deleteById(gitRepo.getId());
+            }
+            File file = new File(gitRepos.get(gitRepos.size() - 1).getDirectory());
             if (file.exists()) {
                 System.out.println("The Git repository exists.");
+                gitRepoRepository.save(gitRepos.get(gitRepos.size() - 1));
                 return ResponseEntity.ok(true);
-            } else {
-                System.out.println("The Git repository does not exist.");
             }
         }
+        System.out.println("The Git repository does not exist.");
         return ResponseEntity.ok(false);
     }
 }
