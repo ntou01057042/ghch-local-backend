@@ -55,8 +55,8 @@ public class GitRepoController {
         return ResponseEntity.created(locationOfNewGitRepo).build();
     }
 
-    @GetMapping("/check")
-    public ResponseEntity<Boolean> checkIfClonedRepoExists(@RequestParam String repoOwner, @RequestParam String repoName) {
+    @GetMapping("/check/{repoOwner}/{repoName}")
+    public ResponseEntity<Boolean> checkIfClonedRepoExists(@PathVariable String repoOwner, @PathVariable String repoName) {
         List<GitRepo> gitRepos = gitRepoRepository.findAllByRepoOwnerAndRepoName(repoOwner, repoName);
         if (!gitRepos.isEmpty()) {
             for (GitRepo gitRepo : gitRepos) {
