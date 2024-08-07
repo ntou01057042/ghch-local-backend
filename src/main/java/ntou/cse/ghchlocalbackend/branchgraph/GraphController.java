@@ -197,7 +197,7 @@ public class GraphController {
         for (RevCommit commit : masterCommits) {
             if (branchCommits.contains(commit)) {
                 // This commit is where the branch was created
-                firstCommit = commits.get(commits.indexOf(commit) - 1);
+                firstCommit = commits.indexOf(commit) > 0 ? commits.get(commits.indexOf(commit) - 1) : commits.get(0);
                 break;
             }
         }
