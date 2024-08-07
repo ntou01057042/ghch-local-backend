@@ -104,8 +104,8 @@ public class GraphController {
                     owner,
                     repo,
                     masterhead.getName().contains("master") ? "master" : "main",
-                    new Date(masterCommits.get(masterCommits.size() - 1).getCommitTime() * 1000L),
                     new Date(masterCommits.get(0).getCommitTime() * 1000L),
+                    new Date(masterCommits.get(masterCommits.size() - 1).getCommitTime() * 1000L),
                     ""
             ));
 
@@ -166,7 +166,7 @@ public class GraphController {
                         ref.substring("refs/remotes/origin/".length()),
                         new Date(lastCommit.getCommitTime() * 1000L),
                         new Date(firstCommit.getCommitTime() * 1000L),
-                        lastCommit.getCommitterIdent().getName()
+                        firstCommit.getCommitterIdent().getName()
                 );
                 System.out.println(graphBranch);
                 res.add(graphBranch);
