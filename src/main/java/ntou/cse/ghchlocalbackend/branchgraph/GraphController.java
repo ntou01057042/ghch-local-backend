@@ -111,8 +111,15 @@ public class GraphController {
             res.add(mainBranch);
             graphBranchRepository.save(mainBranch);
 
+//            for (String ref : listBranches(owner, repo)) {
+//                System.out.println(ref);
+//            }
+
             for (String ref : listBranches(owner, repo)) {
-                if (ref.startsWith("refs/heads/") || ref.startsWith("refs/remotes/origin/master") || ref.startsWith("refs/remotes/origin/main")) {
+//                if (ref.startsWith("refs/heads/") || ref.startsWith("refs/remotes/origin/master") || ref.startsWith("refs/remotes/origin/main")) {
+//                    continue;
+//                }
+                if (ref.startsWith("refs/remotes") || ref.startsWith("refs/heads/master") || ref.startsWith("refs/heads/main")) {
                     continue;
                 }
 //                System.out.println("ref: " + ref);
@@ -165,7 +172,8 @@ public class GraphController {
                 GraphBranch graphBranch = new GraphBranch(
                         owner,
                         repo,
-                        ref.substring("refs/remotes/origin/".length()),
+//                        ref.substring("refs/remotes/origin/".length()),
+                        ref.substring("refs/heads/".length()),
                         new Date(lastCommit.getCommitTime() * 1000L),
                         new Date(firstCommit.getCommitTime() * 1000L),
                         firstCommit.getCommitterIdent().getName()
@@ -180,7 +188,8 @@ public class GraphController {
                     graphCommits.add(new GraphCommit(
                             owner,
                             repo,
-                            ref.substring("refs/remotes/origin/".length()),
+//                            ref.substring("refs/remotes/origin/".length()),
+                            ref.substring("refs/heads/".length()),
                             commits.get(i).getShortMessage(),
                             commits.get(i).getCommitterIdent().getName(),
                             new Date(commits.get(i).getCommitTime() * 1000L)
