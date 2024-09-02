@@ -100,14 +100,16 @@ public class GraphController {
             }
 
             // Add main branch
-            res.add(new GraphBranch(
+            GraphBranch mainBranch = new GraphBranch(
                     owner,
                     repo,
                     masterhead.getName().contains("master") ? "master" : "main",
                     new Date(masterCommits.get(0).getCommitTime() * 1000L),
                     new Date(masterCommits.get(masterCommits.size() - 1).getCommitTime() * 1000L),
                     ""
-            ));
+            );
+            res.add(mainBranch);
+            graphBranchRepository.save(mainBranch);
 
             for (String ref : listBranches(owner, repo)) {
                 if (ref.startsWith("refs/heads/") || ref.startsWith("refs/remotes/origin/master") || ref.startsWith("refs/remotes/origin/main")) {
