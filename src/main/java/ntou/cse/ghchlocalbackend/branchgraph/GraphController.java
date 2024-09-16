@@ -261,39 +261,49 @@ public class GraphController {
         restTemplate.delete("http://localhost:8081/cloud-graph-branch/" + owner + "/" + repo);
 
         List<GraphBranch> graphBranches = graphBranchRepository.findAllByOwnerAndRepo(owner, repo);
-        for (GraphBranch graphBranch : graphBranches) {
-            CloudGraphBranch newCloudGraphBranchRequest = new CloudGraphBranch(
-                    graphBranch.getOwner(),
-                    graphBranch.getRepo(),
-                    graphBranch.getName(),
-                    graphBranch.getEndTime(),
-                    graphBranch.getStartTime(),
-                    graphBranch.getCommitter()
-            );
-            restTemplate.postForEntity(
-                    "http://localhost:8081/cloud-graph-branch",
-                    newCloudGraphBranchRequest,
-                    Void.class
-            );
-        }
+        restTemplate.postForEntity(
+                "http://localhost:8081/cloud-graph-branch",
+                graphBranches,
+                Void.class
+        );
+//        for (GraphBranch graphBranch : graphBranches) {
+//            CloudGraphBranch newCloudGraphBranchRequest = new CloudGraphBranch(
+//                    graphBranch.getOwner(),
+//                    graphBranch.getRepo(),
+//                    graphBranch.getName(),
+//                    graphBranch.getEndTime(),
+//                    graphBranch.getStartTime(),
+//                    graphBranch.getCommitter()
+//            );
+//            restTemplate.postForEntity(
+//                    "http://localhost:8081/cloud-graph-branch",
+//                    newCloudGraphBranchRequest,
+//                    Void.class
+//            );
+//        }
 
         restTemplate.delete("http://localhost:8081/cloud-graph-commit/" + owner + "/" + repo);
 
         List<GraphCommit> graphCommits = graphCommitRepository.findAllByOwnerAndRepo(owner, repo);
-        for (GraphCommit graphCommit : graphCommits) {
-            CloudGraphCommit newCloudGraphCommitRequest = new CloudGraphCommit(
-                    graphCommit.getOwner(),
-                    graphCommit.getRepo(),
-                    graphCommit.getBranchName(),
-                    graphCommit.getMessage(),
-                    graphCommit.getCommitter(),
-                    graphCommit.getCommitTime()
-            );
-            restTemplate.postForEntity(
-                    "http://localhost:8081/cloud-graph-commit",
-                    newCloudGraphCommitRequest,
-                    Void.class
-            );
-        }
+        restTemplate.postForEntity(
+                "http://localhost:8081/cloud-graph-commit",
+                graphCommits,
+                Void.class
+        );
+//        for (GraphCommit graphCommit : graphCommits) {
+//            CloudGraphCommit newCloudGraphCommitRequest = new CloudGraphCommit(
+//                    graphCommit.getOwner(),
+//                    graphCommit.getRepo(),
+//                    graphCommit.getBranchName(),
+//                    graphCommit.getMessage(),
+//                    graphCommit.getCommitter(),
+//                    graphCommit.getCommitTime()
+//            );
+//            restTemplate.postForEntity(
+//                    "http://localhost:8081/cloud-graph-commit",
+//                    newCloudGraphCommitRequest,
+//                    Void.class
+//            );
+//        }
     }
 }
