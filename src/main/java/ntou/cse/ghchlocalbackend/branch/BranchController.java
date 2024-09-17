@@ -1,10 +1,7 @@
 package ntou.cse.ghchlocalbackend.branch;
 
 import ntou.cse.ghchlocalbackend.LoginController;
-import ntou.cse.ghchlocalbackend.branchgraph.GraphBranch;
-import ntou.cse.ghchlocalbackend.branchgraph.GraphBranchRepository;
-import ntou.cse.ghchlocalbackend.branchgraph.GraphCommit;
-import ntou.cse.ghchlocalbackend.branchgraph.GraphCommitRepository;
+import ntou.cse.ghchlocalbackend.branchgraph.*;
 import ntou.cse.ghchlocalbackend.gitrepo.GitRepoRepository;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.ListBranchCommand;
@@ -17,6 +14,7 @@ import org.eclipse.jgit.storage.file.FileRepositoryBuilder;
 import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.client.RestTemplate;
 
 import java.io.File;
 import java.io.IOException;
@@ -31,6 +29,8 @@ public class BranchController {
     private final GraphCommitRepository graphCommitRepository;
 
     private final LoginController loginController;
+
+    private final RestTemplate restTemplate = new RestTemplate();
 
     public BranchController(GitRepoRepository gitRepoRepository, GraphBranchRepository graphBranchRepository, GraphCommitRepository graphCommitRepository, LoginController loginController) {
         this.gitRepoRepository = gitRepoRepository;
@@ -231,6 +231,22 @@ public class BranchController {
                     System.out.println(graphBranch);
                     graphBranchRepository.save(graphBranch);
 
+                    // Upload GraphBranch for current branch
+                    restTemplate.delete("http://localhost:8081/cloud-graph-branch/" + owner + "/" + repo + "?branch=" + currentBranch);
+                    CloudGraphBranch newCloudGraphBranchRequest = new CloudGraphBranch(
+                            graphBranch.getOwner(),
+                            graphBranch.getRepo(),
+                            graphBranch.getName(),
+                            graphBranch.getEndTime(),
+                            graphBranch.getStartTime(),
+                            graphBranch.getCommitter()
+                    );
+                    restTemplate.postForEntity(
+                            "http://localhost:8081/cloud-graph-branch",
+                            newCloudGraphBranchRequest,
+                            Void.class
+                    );
+
                     // Store GraphCommits in this branch
                     List<GraphCommit> graphCommits = new ArrayList<>();
                     for (int i = commits.indexOf(firstCommit); i >= 0; i--) {
@@ -245,6 +261,24 @@ public class BranchController {
                     }
                     System.out.println(graphCommits);
                     graphCommitRepository.saveAll(graphCommits);
+
+                    // Upload GraphCommits of current branch
+                    restTemplate.delete("http://localhost:8081/cloud-graph-commit/" + owner + "/" + repo + "?branch=" + currentBranch);
+                    for (GraphCommit graphCommit : graphCommits) {
+                        CloudGraphCommit newCloudGraphCommitRequest = new CloudGraphCommit(
+                                graphCommit.getOwner(),
+                                graphCommit.getRepo(),
+                                graphCommit.getBranchName(),
+                                graphCommit.getMessage(),
+                                graphCommit.getCommitter(),
+                                graphCommit.getCommitTime()
+                        );
+                        restTemplate.postForEntity(
+                                "http://localhost:8081/cloud-graph-commit",
+                                newCloudGraphCommitRequest,
+                                Void.class
+                        );
+                    }
                 } catch (GitAPIException e) {
                     System.out.println("Catch GitAPIException: " + e.getMessage());
                 }
