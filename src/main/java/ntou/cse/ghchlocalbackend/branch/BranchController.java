@@ -25,8 +25,8 @@ import java.io.IOException;
 import java.util.*;
 
 @RestController
-@RequestMapping("/push")
-public class PushController {
+@RequestMapping("/branch")
+public class BranchController {
 
     private final GitRepoRepository gitRepoRepository;
     private final GraphBranchRepository graphBranchRepository;
@@ -34,14 +34,14 @@ public class PushController {
 
     private final LoginController loginController;
 
-    public PushController(GitRepoRepository gitRepoRepository, GraphBranchRepository graphBranchRepository, GraphCommitRepository graphCommitRepository, LoginController loginController) {
+    public BranchController(GitRepoRepository gitRepoRepository, GraphBranchRepository graphBranchRepository, GraphCommitRepository graphCommitRepository, LoginController loginController) {
         this.gitRepoRepository = gitRepoRepository;
         this.graphBranchRepository = graphBranchRepository;
         this.graphCommitRepository = graphCommitRepository;
         this.loginController = loginController;
     }
 
-    @PostMapping("/{owner}/{repo}")
+    @PostMapping("/push/{owner}/{repo}")
     ResponseEntity<Void> pushToGitHub(@PathVariable String owner, @PathVariable String repo) {
         FileRepositoryBuilder builder = new FileRepositoryBuilder();
         File repoDir = openTargetRepository(owner, repo);
