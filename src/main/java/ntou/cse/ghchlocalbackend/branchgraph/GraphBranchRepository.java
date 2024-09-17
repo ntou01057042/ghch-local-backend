@@ -12,4 +12,8 @@ public interface GraphBranchRepository extends MongoRepository<GraphBranch, Stri
     void deleteByOwnerAndRepo(String owner, String repo);
 
     List<GraphBranch> findAllByOwnerAndRepo(String owner, String repo);
+
+    boolean existsByOwnerAndRepoAndName(String owner, String repo, String branch);
+
+    void deleteByOwnerAndRepoAndName(String owner, String repo, String branch);
 }
