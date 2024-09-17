@@ -7,6 +7,7 @@ import ntou.cse.ghchlocalbackend.branchgraph.GraphCommit;
 import ntou.cse.ghchlocalbackend.branchgraph.GraphCommitRepository;
 import ntou.cse.ghchlocalbackend.gitrepo.GitRepoRepository;
 import org.eclipse.jgit.api.Git;
+import org.eclipse.jgit.api.ListBranchCommand;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.lib.Ref;
 import org.eclipse.jgit.lib.Repository;
@@ -257,5 +258,66 @@ public class BranchController {
 
     private File openTargetRepository(String owner, String repo) {
         return new File(gitRepoRepository.findByRepoOwnerAndRepoName(owner, repo).getDirectory());
+    }
+
+    @PostMapping("/pull/{owner}/{repo}")
+    ResponseEntity<Void> pullAllBranchesFromGitHub(@PathVariable String owner, @PathVariable String repo) {
+        FileRepositoryBuilder builder = new FileRepositoryBuilder();
+        File repoDir = openTargetRepository(owner, repo);
+        try (Repository repository = builder.setGitDir(repoDir)
+                .readEnvironment() // scan environment GIT_* variables
+                .findGitDir() // scan up the file system tree
+                .build()) {
+            System.out.println(repository.getBranch());
+            try (Git git = new Git(repository)) {
+                String currentBranch = repository.getBranch();
+                // Checkout and "pull" each branch
+                for (String ref : listLocalBranches(owner, repo)) {
+                    System.out.println(ref.substring("refs/heads/".length()));
+                    git.checkout().setName(ref.substring("refs/heads/".length())).call();
+                    git.pull()
+                            .setCredentialsProvider(new UsernamePasswordCredentialsProvider(loginController.getGitHubToken(), ""))
+                            .setRemote("origin").setRemoteBranchName(repository.getBranch())
+                            .call();
+                }
+                git.checkout().setName(currentBranch).call();
+            } catch (GitAPIException e) {
+                throw new RuntimeException(e);
+            }
+        } catch (IOException e) {
+            System.out.println("Catch IOException: " + e.getMessage());
+        }
+
+        return ResponseEntity.ok().build();
+    }
+
+    public List<String> listLocalBranches(String owner, String repo) throws IOException, GitAPIException {
+        FileRepositoryBuilder builder = new FileRepositoryBuilder();
+        File repoDir = openTargetRepository(owner, repo);
+        List<String> refs = new ArrayList<>();
+        try (Repository repository = builder.setGitDir(repoDir)
+                .readEnvironment() // scan environment GIT_* variables
+                .findGitDir() // scan up the file system tree
+                .build()) {
+            try (Git git = new Git(repository)) {
+//                System.out.println("Listing local branches:");
+//                List<Ref> call = git.branchList().call();
+//                for (Ref ref : call) {
+//                    System.out.println("Branch: " + ref + " " + ref.getName() + " " + ref.getObjectId().getName());
+//                    System.out.println("Branch: " + ref.getName());
+//                }
+
+//                System.out.println("Now including remote branches:");
+                List<Ref> call = git.branchList().setListMode(ListBranchCommand.ListMode.ALL).call();
+                for (Ref ref : call) {
+//                    System.out.println("Branch: " + ref + " " + ref.getName() + " " + ref.getObjectId().getName());
+//                    System.out.println("Branch: " + ref.getName());
+                    if (ref.getName().startsWith("refs/heads/")) {
+                        refs.add(ref.getName());
+                    }
+                }
+            }
+        }
+        return refs;
     }
 }
