@@ -94,7 +94,8 @@ public class BranchController {
                 try {
                     // Checkout and update main branch
                     String currentBranch = repository.getBranch();
-                    git.checkout().setName("master").call();
+//                    git.checkout().setName("master").call();
+                    git.checkout().setName("main").call();
                     System.out.println(loginController.getGitHubToken());
                     git.pull()
                             .setCredentialsProvider(new UsernamePasswordCredentialsProvider(loginController.getGitHubToken(), ""))
