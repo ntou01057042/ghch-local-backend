@@ -16,10 +16,7 @@ import org.eclipse.jgit.revwalk.RevWalk;
 import org.eclipse.jgit.storage.file.FileRepositoryBuilder;
 import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.io.File;
 import java.io.IOException;
@@ -40,6 +37,21 @@ public class BranchController {
         this.graphBranchRepository = graphBranchRepository;
         this.graphCommitRepository = graphCommitRepository;
         this.loginController = loginController;
+    }
+
+    @GetMapping("/{owner}/{repo}")
+    ResponseEntity<String> getCurrentLocalBranch(@PathVariable String owner, @PathVariable String repo) {
+        FileRepositoryBuilder builder = new FileRepositoryBuilder();
+        File repoDir = openTargetRepository(owner, repo);
+        try (Repository repository = builder.setGitDir(repoDir)
+                .readEnvironment() // scan environment GIT_* variables
+                .findGitDir() // scan up the file system tree
+                .build()) {
+            return ResponseEntity.ok(repository.getBranch());
+        } catch (IOException e) {
+            System.out.println("Catch IOException: " + e.getMessage());
+            return ResponseEntity.internalServerError().build();
+        }
     }
 
     @PostMapping("/push/{owner}/{repo}")
