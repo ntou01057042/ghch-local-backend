@@ -81,8 +81,8 @@ public class BranchController {
         return ResponseEntity.ok().build();
     }
 
-    @PostMapping("/upload/{owner}/{repo}/{branch}")
-    ResponseEntity<Void> uploadCurrentBranchToCloudServer(@PathVariable String owner, @PathVariable String repo, @PathVariable String branch) {
+    @PostMapping("/upload/{owner}/{repo}")
+    ResponseEntity<Void> uploadCurrentBranchToCloudServer(@PathVariable String owner, @PathVariable String repo, @RequestParam String branch) {
         FileRepositoryBuilder builder = new FileRepositoryBuilder();
         File repoDir = openTargetRepository(owner, repo);
         try (Repository repository = builder.setGitDir(repoDir)
