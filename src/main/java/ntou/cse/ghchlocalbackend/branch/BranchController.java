@@ -6,6 +6,11 @@ import ntou.cse.ghchlocalbackend.gitrepo.GitRepoRepository;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.ListBranchCommand;
 import org.eclipse.jgit.api.errors.GitAPIException;
+import org.eclipse.jgit.api.errors.InvalidRemoteException;
+import org.eclipse.jgit.api.errors.TransportException;
+import org.eclipse.jgit.errors.AmbiguousObjectException;
+import org.eclipse.jgit.errors.IncorrectObjectTypeException;
+import org.eclipse.jgit.lib.ObjectId;
 import org.eclipse.jgit.lib.Ref;
 import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.revwalk.RevCommit;
@@ -366,5 +371,38 @@ public class BranchController {
             }
         }
         return refs;
+    }
+
+    @GetMapping("/latest-or-not")
+    ResponseEntity<String> checkLocalBranchStatus(@RequestParam String owner, @RequestParam String repo, @RequestParam String localBranch) {
+        File repoDir = openTargetRepository(owner, repo);
+        try {
+            // Open the existing repository
+            Repository repository = new FileRepositoryBuilder()
+                    .setGitDir(repoDir)
+//                    .setGitDir(new File("C:\\Users\\baekhil\\Documents\\GitHub\\create-pr-using-github-rest-api\\.git"))
+                    .build();
+
+            try (Git git = new Git(repository)) {
+                // Fetch from the remote
+                git.fetch()
+                        .setCredentialsProvider(new UsernamePasswordCredentialsProvider(loginController.getGitHubToken(), ""))
+                        .setRemote("origin")
+                        .call();
+
+                // Get the commit IDs for both branches
+                ObjectId localHead = repository.resolve(localBranch);
+                ObjectId remoteHead = repository.resolve("origin/" + localBranch);
+
+                // Compare the commits
+                if (localHead.equals(remoteHead)) {
+                    return ResponseEntity.ok("Your branch is up to date with the remote.");
+                } else {
+                    return ResponseEntity.ok("Your branch is not up to date with the remote.");
+                }
+            }
+        } catch (GitAPIException | IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 }
