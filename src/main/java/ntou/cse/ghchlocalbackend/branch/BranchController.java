@@ -3,6 +3,7 @@ package ntou.cse.ghchlocalbackend.branch;
 import ntou.cse.ghchlocalbackend.LoginController;
 import ntou.cse.ghchlocalbackend.branchgraph.*;
 import ntou.cse.ghchlocalbackend.gitrepo.GitRepoRepository;
+import org.eclipse.jgit.api.CreateBranchCommand;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.ListBranchCommand;
 import org.eclipse.jgit.api.errors.GitAPIException;
@@ -325,11 +326,20 @@ public class BranchController {
                 String currentBranch = repository.getBranch();
                 // Checkout and "pull" each branch
                 for (String ref : listLocalBranches(owner, repo)) {
-                    System.out.println(ref.substring("refs/heads/".length()));
+//                    System.out.println(ref.substring("refs/heads/".length()));
                     git.checkout().setName(ref.substring("refs/heads/".length())).call();
                     git.pull()
                             .setCredentialsProvider(new UsernamePasswordCredentialsProvider(loginController.getGitHubToken(), ""))
                             .setRemote("origin").setRemoteBranchName(repository.getBranch())
+                            .call();
+                }
+                for (String branchName : getNewBranchesCreatedOnGitHub(owner, repo)) {
+//                    System.out.println(branchName);
+                    git.checkout()
+                            .setCreateBranch(true)
+                            .setName(branchName)
+                            .setUpstreamMode(CreateBranchCommand.SetupUpstreamMode.TRACK)
+                            .setStartPoint("refs/remotes/origin/" + branchName)
                             .call();
                 }
                 git.checkout().setName(currentBranch).call();
@@ -341,6 +351,45 @@ public class BranchController {
         }
 
         return ResponseEntity.ok().build();
+    }
+
+    public List<String> getNewBranchesCreatedOnGitHub(String owner, String repo) throws IOException, GitAPIException {
+        FileRepositoryBuilder builder = new FileRepositoryBuilder();
+        File repoDir = openTargetRepository(owner, repo);
+        List<String> res = new ArrayList<>();
+        try (Repository repository = builder.setGitDir(repoDir)
+                .readEnvironment() // scan environment GIT_* variables
+                .findGitDir() // scan up the file system tree
+                .build()) {
+            try (Git git = new Git(repository)) {
+//                System.out.println("Listing local branches:");
+//                List<Ref> call = git.branchList().call();
+//                for (Ref ref : call) {
+//                    System.out.println("Branch: " + ref + " " + ref.getName() + " " + ref.getObjectId().getName());
+//                    System.out.println("Branch: " + ref.getName());
+//                }
+
+//                System.out.println("Now including remote branches:");
+                List<Ref> call = git.branchList().setListMode(ListBranchCommand.ListMode.ALL).call();
+                Map<String, Boolean> map = new HashMap<>();
+                for (Ref ref : call) {
+//                    System.out.println("Branch: " + ref + " " + ref.getName() + " " + ref.getObjectId().getName());
+//                    System.out.println("Branch: " + ref.getName());
+//                    if (ref.getName().startsWith("refs/heads/")) {
+//                        refs.add(ref.getName());
+//                    }
+                    if (ref.getName().startsWith("refs/heads/")) {
+                        map.put(ref.getName().substring("refs/heads/".length()), true);
+                    } else if (ref.getName().startsWith("refs/remotes/origin")) {
+                        String branchName = ref.getName().substring("refs/remotes/origin/".length());
+                        if (!map.containsKey(branchName) && !branchName.equals("master")) {
+                            res.add(ref.getName().substring("refs/remotes/origin/".length()));
+                        }
+                    }
+                }
+            }
+        }
+        return res;
     }
 
     public List<String> listLocalBranches(String owner, String repo) throws IOException, GitAPIException {
