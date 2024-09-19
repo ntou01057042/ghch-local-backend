@@ -258,7 +258,7 @@ public class GraphController {
 
     @PostMapping("/upload")
     public void uploadGraphBranchesAndGraphCommits(@RequestParam String owner, @RequestParam String repo) {
-        restTemplate.delete("http://localhost:8081/cloud-graph-branch/" + owner + "/" + repo);
+        restTemplate.delete("http://localhost:8081/cloud-graph-branch/all/" + owner + "/" + repo);
 
         List<GraphBranch> graphBranches = graphBranchRepository.findAllByOwnerAndRepo(owner, repo);
         for (GraphBranch graphBranch : graphBranches) {
@@ -277,7 +277,7 @@ public class GraphController {
             );
         }
 
-        restTemplate.delete("http://localhost:8081/cloud-graph-commit/" + owner + "/" + repo);
+        restTemplate.delete("http://localhost:8081/cloud-graph-commit/all/" + owner + "/" + repo);
 
         List<GraphCommit> graphCommits = graphCommitRepository.findAllByOwnerAndRepo(owner, repo);
         for (GraphCommit graphCommit : graphCommits) {

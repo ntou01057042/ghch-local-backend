@@ -1,5 +1,6 @@
 package ntou.cse.ghchlocalbackend;
 
+import lombok.Getter;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.RequestEntity;
@@ -24,6 +25,9 @@ public class LoginController {
 
     private final RestTemplate restTemplate = new RestTemplate();
 
+    @Getter
+    private String gitHubToken;
+
     public LoginController(AppUserService appUserService) {
         this.appUserService = appUserService;
     }
@@ -41,13 +45,13 @@ public class LoginController {
     public RedirectView callback(@RequestParam("code") String code) {
         Map<?, ?> tokenData = exchangeCode(code);
         if (tokenData.containsKey("access_token")) {
-            String token = (String) tokenData.get("access_token");
-            System.out.println("token: " + token);
-            Map<?, ?> userInfo = userInfo(token);
+            gitHubToken = (String) tokenData.get("access_token");
+            System.out.println("token: " + gitHubToken);
+            Map<?, ?> userInfo = userInfo(gitHubToken);
             String handle = (String) userInfo.get("login");
 //            String name = (String) userInfo.get("name");
             AppUser currentAppUser = appUserService.loginAccount(handle);
-            return new RedirectView("http://localhost:3000?id=" + currentAppUser.getId() + "&username=" + currentAppUser.getUsername() + "&token=" + token);
+            return new RedirectView("http://localhost:3000?id=" + currentAppUser.getId() + "&username=" + currentAppUser.getUsername() + "&token=" + gitHubToken);
 //            return "Successfully authorized! Welcome, " + name + " (" + handle + ")";
 //            return "Successfully authorized! Got code " + code + " and exchanged it for a user access token ending in " + token.substring(token.length() - 9);
         } else {
@@ -79,4 +83,5 @@ public class LoginController {
                 .build();
         return restTemplate.exchange(request, Map.class).getBody();
     }
+
 }

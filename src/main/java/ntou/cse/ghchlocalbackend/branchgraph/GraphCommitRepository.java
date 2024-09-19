@@ -12,4 +12,8 @@ public interface GraphCommitRepository extends MongoRepository<GraphCommit, Stri
     void deleteByOwnerAndRepo(String owner, String repo);
 
     List<GraphCommit> findAllByOwnerAndRepo(String owner, String repo);
+
+    boolean existsByOwnerAndRepoAndBranchName(String owner, String repo, String branch);
+
+    void deleteByOwnerAndRepoAndBranchName(String owner, String repo, String branch);
 }
