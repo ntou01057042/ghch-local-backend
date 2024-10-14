@@ -454,4 +454,29 @@ public class BranchController {
             throw new RuntimeException(e);
         }
     }
+
+    @PostMapping("/create/{owner}/{repo}")
+    ResponseEntity<Void> createANewBranch(@PathVariable String owner, @PathVariable String repo, @RequestParam String newBranchName) {
+        File repoDir = openTargetRepository(owner, repo);
+        try {
+            // Open the existing repository
+            Repository repository = new FileRepositoryBuilder()
+                    .setGitDir(repoDir)
+                    .build();
+
+            try (Git git = new Git(repository)) {
+                // run the add-call
+                git.branchCreate()
+                        .setName(newBranchName)
+                        .call();
+
+//                for (Ref ref : git.branchList().call()) {
+//                    System.out.println("Branch-Created: " + ref + " " + ref.getName() + " " + ref.getObjectId().getName());
+//                }
+            }
+        } catch (GitAPIException | IOException e) {
+            throw new RuntimeException(e);
+        }
+        return ResponseEntity.ok().build();
+    }
 }
