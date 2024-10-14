@@ -3,12 +3,8 @@ package ntou.cse.ghchlocalbackend.branch;
 import ntou.cse.ghchlocalbackend.LoginController;
 import ntou.cse.ghchlocalbackend.branchgraph.*;
 import ntou.cse.ghchlocalbackend.gitrepo.GitRepoRepository;
-import org.eclipse.jgit.api.CreateBranchCommand;
-import org.eclipse.jgit.api.Git;
-import org.eclipse.jgit.api.ListBranchCommand;
-import org.eclipse.jgit.api.errors.GitAPIException;
-import org.eclipse.jgit.api.errors.InvalidRemoteException;
-import org.eclipse.jgit.api.errors.TransportException;
+import org.eclipse.jgit.api.*;
+import org.eclipse.jgit.api.errors.*;
 import org.eclipse.jgit.errors.AmbiguousObjectException;
 import org.eclipse.jgit.errors.IncorrectObjectTypeException;
 import org.eclipse.jgit.lib.ObjectId;
@@ -453,5 +449,62 @@ public class BranchController {
         } catch (GitAPIException | IOException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    @PostMapping("/create/{owner}/{repo}")
+    ResponseEntity<Void> createANewBranch(@PathVariable String owner, @PathVariable String repo, @RequestParam String newBranchName) {
+        File repoDir = openTargetRepository(owner, repo);
+        try {
+            // Open the existing repository
+            Repository repository = new FileRepositoryBuilder()
+                    .setGitDir(repoDir)
+                    .build();
+
+            try (Git git = new Git(repository)) {
+                // run the add-call
+                git.branchCreate()
+                        .setName(newBranchName)
+                        .call();
+                git.checkout().setName(newBranchName).call();
+//                for (Ref ref : git.branchList().call()) {
+//                    System.out.println("Branch-Created: " + ref + " " + ref.getName() + " " + ref.getObjectId().getName());
+//                }
+            }
+        } catch (GitAPIException | IOException e) {
+            throw new RuntimeException(e);
+        }
+        return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("/sync-main/{owner}/{repo}")
+    ResponseEntity<Void> syncWithMainBranch(@PathVariable String owner, @PathVariable String repo) {
+        File repoDir = openTargetRepository(owner, repo);
+        try {
+            // Open the existing repository
+            Repository repository = new FileRepositoryBuilder()
+                    .setGitDir(repoDir)
+                    .build();
+
+            try (Git git = new Git(repository)) {
+                String currentBranch = repository.getBranch();
+                System.out.println(currentBranch);
+                // retrieve the objectId of the latest commit on main branch
+                ObjectId mergeBase = repository.resolve("main");
+
+                // perform the actual merge, here we disable FastForward to see the
+                // actual merge-commit even though the merge is trivial
+                MergeResult merge = git.merge().
+                        include(mergeBase).
+                        setCommit(true).
+                        setFastForward(MergeCommand.FastForwardMode.NO_FF).
+                        setMessage("Merge changes from main branch").
+                        call();
+            } catch (GitAPIException e) {
+                throw new RuntimeException(e);
+            }
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+        return ResponseEntity.ok().build();
     }
 }
