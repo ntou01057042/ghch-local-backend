@@ -469,7 +469,7 @@ public class BranchController {
                 git.branchCreate()
                         .setName(newBranchName)
                         .call();
-
+                git.checkout().setName(newBranchName).call();
 //                for (Ref ref : git.branchList().call()) {
 //                    System.out.println("Branch-Created: " + ref + " " + ref.getName() + " " + ref.getObjectId().getName());
 //                }
