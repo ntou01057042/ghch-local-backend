@@ -258,7 +258,7 @@ public class GraphController {
 
     @PostMapping("/upload")
     public void uploadGraphBranchesAndGraphCommits(@RequestParam String owner, @RequestParam String repo) {
-        restTemplate.delete("http://localhost:8081/cloud-graph-branch/all/" + owner + "/" + repo);
+        restTemplate.delete("https://ghch-cloud-server-b889208febef.herokuapp.com/cloud-graph-branch/all/" + owner + "/" + repo);
 
         List<GraphBranch> graphBranches = graphBranchRepository.findAllByOwnerAndRepo(owner, repo);
         for (GraphBranch graphBranch : graphBranches) {
@@ -271,13 +271,13 @@ public class GraphController {
                     graphBranch.getCommitter()
             );
             restTemplate.postForEntity(
-                    "http://localhost:8081/cloud-graph-branch",
+                    "https://ghch-cloud-server-b889208febef.herokuapp.com/cloud-graph-branch",
                     newCloudGraphBranchRequest,
                     Void.class
             );
         }
 
-        restTemplate.delete("http://localhost:8081/cloud-graph-commit/all/" + owner + "/" + repo);
+        restTemplate.delete("https://ghch-cloud-server-b889208febef.herokuapp.com/cloud-graph-commit/all/" + owner + "/" + repo);
 
         List<GraphCommit> graphCommits = graphCommitRepository.findAllByOwnerAndRepo(owner, repo);
         for (GraphCommit graphCommit : graphCommits) {
@@ -290,7 +290,7 @@ public class GraphController {
                     graphCommit.getCommitTime()
             );
             restTemplate.postForEntity(
-                    "http://localhost:8081/cloud-graph-commit",
+                    "https://ghch-cloud-server-b889208febef.herokuapp.com/cloud-graph-commit",
                     newCloudGraphCommitRequest,
                     Void.class
             );

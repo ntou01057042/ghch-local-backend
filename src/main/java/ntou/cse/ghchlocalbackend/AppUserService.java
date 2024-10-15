@@ -20,7 +20,7 @@ public class AppUserService {
         AppUser newAppUserRequest = new AppUser();
         newAppUserRequest.setUsername(username);
         ResponseEntity<Void> createResponse = restTemplate.postForEntity(
-                "http://localhost:8081/app-users",
+                "https://ghch-cloud-server-b889208febef.herokuapp.com/app-users",
                 newAppUserRequest,
                 Void.class
         );

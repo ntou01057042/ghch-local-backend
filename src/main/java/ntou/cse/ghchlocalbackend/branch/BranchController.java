@@ -234,7 +234,7 @@ public class BranchController {
                     graphBranchRepository.save(graphBranch);
 
                     // Upload GraphBranch for current branch
-                    restTemplate.delete("http://localhost:8081/cloud-graph-branch/" + owner + "/" + repo + "?branch=" + currentBranch);
+                    restTemplate.delete("https://ghch-cloud-server-b889208febef.herokuapp.com/cloud-graph-branch/" + owner + "/" + repo + "?branch=" + currentBranch);
                     CloudGraphBranch newCloudGraphBranchRequest = new CloudGraphBranch(
                             graphBranch.getOwner(),
                             graphBranch.getRepo(),
@@ -244,7 +244,7 @@ public class BranchController {
                             graphBranch.getCommitter()
                     );
                     restTemplate.postForEntity(
-                            "http://localhost:8081/cloud-graph-branch",
+                            "https://ghch-cloud-server-b889208febef.herokuapp.com/cloud-graph-branch",
                             newCloudGraphBranchRequest,
                             Void.class
                     );
@@ -265,7 +265,7 @@ public class BranchController {
                     graphCommitRepository.saveAll(graphCommits);
 
                     // Upload GraphCommits of current branch
-                    restTemplate.delete("http://localhost:8081/cloud-graph-commit/" + owner + "/" + repo + "?branch=" + currentBranch);
+                    restTemplate.delete("https://ghch-cloud-server-b889208febef.herokuapp.com/cloud-graph-commit/" + owner + "/" + repo + "?branch=" + currentBranch);
                     for (GraphCommit graphCommit : graphCommits) {
                         CloudGraphCommit newCloudGraphCommitRequest = new CloudGraphCommit(
                                 graphCommit.getOwner(),
@@ -276,7 +276,7 @@ public class BranchController {
                                 graphCommit.getCommitTime()
                         );
                         restTemplate.postForEntity(
-                                "http://localhost:8081/cloud-graph-commit",
+                                "https://ghch-cloud-server-b889208febef.herokuapp.com/cloud-graph-commit",
                                 newCloudGraphCommitRequest,
                                 Void.class
                         );
