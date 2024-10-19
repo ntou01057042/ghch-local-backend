@@ -173,8 +173,22 @@ public class BranchController {
                             new Date(masterCommits.get(masterCommits.size() - 1).getCommitTime() * 1000L),
                             ""
                     );
+                    System.out.println("size" + masterCommits.size());
                     graphBranchRepository.save(mainBranch);
-
+                    // Upload GraphBranch for main branch
+                    restTemplate.delete("https://ghch-cloud-server-b889208febef.herokuapp.com/cloud-graph-branch/" + owner + "/" + repo + "?branch=main");
+                    restTemplate.postForEntity(
+                            "https://ghch-cloud-server-b889208febef.herokuapp.com/cloud-graph-branch",
+                            new CloudGraphBranch(
+                                    mainBranch.getOwner(),
+                                    mainBranch.getRepo(),
+                                    mainBranch.getName(),
+                                    mainBranch.getEndTime(),
+                                    mainBranch.getStartTime(),
+                                    mainBranch.getCommitter()
+                            ),
+                            Void.class
+                    );
                     // Update GraphBranch and GraphCommits
                     String ref = "refs/heads/" + currentBranch;
                     Ref head = repository.exactRef(ref);
@@ -478,6 +492,7 @@ public class BranchController {
         } catch (GitAPIException | IOException e) {
             throw new RuntimeException(e);
         }
+        System.out.println(returnSha);
         return ResponseEntity.ok(returnSha);
     }
 
