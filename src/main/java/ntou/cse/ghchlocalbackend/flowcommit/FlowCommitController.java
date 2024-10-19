@@ -26,7 +26,7 @@ public class FlowCommitController {
 
     @GetMapping("/{owner}/{repo}")
     public List<FlowCommit> getFlowCommits(@PathVariable String owner, @PathVariable String repo, @RequestParam String branch) throws IOException, GitAPIException {
-        List<FlowCommit> res = new ArrayList<>();
+        Map<String, FlowCommit> res = new HashMap<>();
         FileRepositoryBuilder builder = new FileRepositoryBuilder();
         File repoDir = openTargetRepository(owner, repo);
 
@@ -149,7 +149,7 @@ public class FlowCommitController {
                         // If the new branch is merged into main branch
                         if (parent.getFullMessage().equals(commits.get(0).getFullMessage())) {
                             System.out.println("Found merge point in the main branch!");
-                            res.add(new FlowCommit(
+                            res.put(rev.getFullMessage(), new FlowCommit(
                                     owner,
                                     repo,
                                     branch,
@@ -173,7 +173,7 @@ public class FlowCommitController {
                 if (rev.getParentCount() == 2) {
                     System.out.println("Found merge point in the new branch!");
                     // Add this merge point
-                    res.add(new FlowCommit(
+                    res.put(rev.getFullMessage(), new FlowCommit(
                             owner,
                             repo,
                             branch,
@@ -184,7 +184,7 @@ public class FlowCommitController {
                             true
                     ));
                     // The second parent is in main branch
-                    res.add(new FlowCommit(
+                    res.put(rev.getFullMessage(), new FlowCommit(
                             owner,
                             repo,
                             branch,
@@ -196,7 +196,7 @@ public class FlowCommitController {
                     ));
                 } else if (rev.getParentCount() == 1) {
                     // Add normal commit in the new branch
-                    res.add(new FlowCommit(
+                    res.put(rev.getFullMessage(), new FlowCommit(
                             owner,
                             repo,
                             branch,
@@ -208,7 +208,7 @@ public class FlowCommitController {
                     ));
                     // Found the first commit in the main branch
                     if (mainBranchCommitSet.contains(rev.getParent(0))) {
-                        res.add(new FlowCommit(
+                        res.put(rev.getFullMessage(), new FlowCommit(
                                 owner,
                                 repo,
                                 branch,
@@ -222,8 +222,32 @@ public class FlowCommitController {
                     }
                 }
             }
+
+            // 3. Iterate all commits in the main branch to find if any unmerged commit exists
+            for (RevCommit rev : mainBranchCommits) {
+//                System.out.println();
+//                System.out.println(Arrays.toString(rev.getParents()));
+                if (rev.getParentCount() == 1) {
+                    for (RevCommit parent : rev.getParents()) {
+//                        System.out.println(parent.getFullMessage());
+                        if (!res.containsKey(parent.getFullMessage())) {
+                            System.out.println("Found unmerge commit in the main branch!");
+                            res.put(rev.getFullMessage(), new FlowCommit(
+                                    owner,
+                                    repo,
+                                    branch,
+                                    rev.getFullMessage(),
+                                    rev.getCommitterIdent().getName(),
+                                    new Date(rev.getCommitTime() * 1000L),
+                                    true,
+                                    true
+                            ));
+                        }
+                    }
+                }
+            }
         }
-        return res;
+        return new ArrayList<>(res.values());
     }
 
     private File openTargetRepository(String owner, String repo) {
