@@ -152,7 +152,7 @@ public class FlowCommitController {
                             res.put(rev.getFullMessage(), new FlowCommit(
                                     owner,
                                     repo,
-                                    "main",
+                                    branch,
                                     rev.getFullMessage(),
                                     rev.getCommitterIdent().getName(),
                                     new Date(rev.getCommitTime() * 1000L),
@@ -187,7 +187,7 @@ public class FlowCommitController {
                     res.put(rev.getFullMessage(), new FlowCommit(
                             owner,
                             repo,
-                            "main",
+                            branch,
                             rev.getParent(1).getFullMessage(),
                             rev.getParent(1).getCommitterIdent().getName(),
                             new Date(rev.getParent(1).getCommitTime() * 1000L),
@@ -211,7 +211,7 @@ public class FlowCommitController {
                         res.put(rev.getFullMessage(), new FlowCommit(
                                 owner,
                                 repo,
-                                "main",
+                                branch,
                                 rev.getParent(0).getFullMessage(),
                                 rev.getParent(0).getCommitterIdent().getName(),
                                 new Date(rev.getParent(0).getCommitTime() * 1000L),
@@ -235,12 +235,12 @@ public class FlowCommitController {
                             res.put(rev.getFullMessage(), new FlowCommit(
                                     owner,
                                     repo,
-                                    "main",
+                                    branch,
                                     rev.getFullMessage(),
                                     rev.getCommitterIdent().getName(),
                                     new Date(rev.getCommitTime() * 1000L),
                                     true,
-                                    true
+                                    false
                             ));
                         }
                     }
