@@ -476,6 +476,7 @@ public class BranchController {
                     .build();
 
             try (Git git = new Git(repository)) {
+                git.checkout().setName("refs/heads/main").call();
                 // run the add-call
                 git.branchCreate()
                         .setName(newBranchName)
